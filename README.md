@@ -1,4 +1,4 @@
-# Poke
+# Game
 
 A browser Game Boy player built on [EmulatorJS](https://emulatorjs.org).
 
