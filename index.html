@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Game</title>
-<meta name="description" content="Game Boy player — bring your own ROM">
+<meta name="description" content="Game Boy & Game Boy Advance player — bring your own ROM">
 <meta name="theme-color" content="#111111">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:title" content="Game">
-<meta property="og:description" content="Game Boy player — bring your own ROM">
+<meta property="og:description" content="Game Boy & Game Boy Advance player — bring your own ROM">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://slevin48.github.io/game/">
 <meta property="og:image" content="https://slevin48.github.io/game/icons/og.png">
@@ -34,9 +34,9 @@
 <body>
 <div id="picker">
   <h1>Game</h1>
-  <p id="hint">Load your own Game Boy ROM (<code>.gb</code> / <code>.gbc</code>). It stays in your browser — nothing is uploaded.</p>
+  <p id="hint">Load your own Game Boy or Game Boy Advance ROM (<code>.gb</code> / <code>.gbc</code> / <code>.gba</code>). It stays in your browser — nothing is uploaded.</p>
   <button id="play" class="btn"></button>
-  <label id="choose" class="btn">Choose ROM<input id="file" type="file" accept=".gb,.gbc"></label>
+  <label id="choose" class="btn">Choose ROM<input id="file" type="file" accept=".gb,.gbc,.gba"></label>
 </div>
 <div id="stage"><div id="game"></div></div>
 
@@ -64,11 +64,14 @@ async function loadRom() {
   });
 }
 
+// EmulatorJS core per ROM extension; Game Boy is the default.
+const CORES = { gba: 'gba' };
+
 function start(file) {
   document.getElementById('picker').style.display = 'none';
   document.getElementById('stage').style.display = 'block';
   window.EJS_player = '#game';
-  window.EJS_core = 'gb';
+  window.EJS_core = CORES[file.name.split('.').pop().toLowerCase()] || 'gb';
   window.EJS_gameName = file.name.replace(/\.[^.]+$/, '');
   window.EJS_gameUrl = file;
   window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';

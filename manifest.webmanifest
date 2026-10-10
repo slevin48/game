@@ -1,7 +1,7 @@
 {
   "name": "Game",
   "short_name": "Game",
-  "description": "Game Boy player — bring your own ROM",
+  "description": "Game Boy & Game Boy Advance player — bring your own ROM",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
