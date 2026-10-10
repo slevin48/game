@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poke</title>
+<style>
+  :root { --bg: #111; --fg: #eee; --muted: #999; --accent: #e3350d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+  #picker { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center; }
+  #picker h1 { margin: 0; font-size: 28px; }
+  #picker p { margin: 0; color: var(--muted); max-width: 420px; line-height: 1.5; }
+  label.btn { background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  input[type=file] { display: none; }
+  #stage { width: 100%; height: 100%; display: none; }
+  #forget { position: fixed; bottom: 8px; right: 8px; background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; display: none; z-index: 10; }
+</style>
+</head>
+<body>
+<div id="picker">
+  <h1>Poke</h1>
+  <p>Load your own Game Boy ROM (<code>.gb</code> / <code>.gbc</code>). It stays in your browser — nothing is uploaded.</p>
+  <label class="btn">Choose ROM<input id="file" type="file" accept=".gb,.gbc"></label>
+</div>
+<div id="stage"><div id="game"></div></div>
+<button id="forget">Forget ROM</button>
+
+<script>
+const DB = 'poke', STORE = 'rom';
+
+function db() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function saveRom(file) {
+  const d = await db();
+  d.transaction(STORE, 'readwrite').objectStore(STORE).put(file, 'last');
+}
+async function loadRom() {
+  const d = await db();
+  return new Promise(resolve => {
+    const req = d.transaction(STORE).objectStore(STORE).get('last');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+async function forgetRom() {
+  const d = await db();
+  d.transaction(STORE, 'readwrite').objectStore(STORE).delete('last');
+}
+
+function start(file) {
+  document.getElementById('picker').style.display = 'none';
+  document.getElementById('stage').style.display = 'block';
+  document.getElementById('forget').style.display = 'block';
+  window.EJS_player = '#game';
+  window.EJS_core = 'gb';
+  window.EJS_gameName = file.name.replace(/\.[^.]+$/, '');
+  window.EJS_gameUrl = file;
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_startOnLoaded = true;
+  const s = document.createElement('script');
+  s.src = EJS_pathtodata + 'loader.js';
+  document.body.appendChild(s);
+}
+
+document.getElementById('file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try { await saveRom(file); } catch {}
+  start(file);
+});
+document.getElementById('forget').addEventListener('click', async () => {
+  try { await forgetRom(); } catch {}
+  location.reload();
+});
+loadRom().then(f => { if (f) start(f); }).catch(() => {});
+</script>
+</body>
+</html>
